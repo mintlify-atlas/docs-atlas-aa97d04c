@@ -1,0 +1,89 @@
+{
+  "projectType": "saas",
+  "projectName": "Sazón Comunitario",
+  "projectDescription": "A community-driven recipe sharing platform built with Next.js and Supabase where users can discover, share, and save cooking recipes.",
+  "theme": "almond",
+  "primaryColor": "#31582B",
+  "lightColor": "#B5D9B0",
+  "darkColor": "#31582B",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": ["introduction", "quickstart", "environment-setup"]
+          },
+          {
+            "group": "Core Features",
+            "pages": [
+              "features/recipes",
+              "features/user-profiles",
+              "features/favorites",
+              "features/search"
+            ]
+          },
+          {
+            "group": "Database",
+            "pages": ["database/schema", "database/supabase-setup"]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Authentication",
+            "pages": ["api/auth/register", "api/auth/login"]
+          },
+          {
+            "group": "Recipes",
+            "pages": [
+              "api/recipes/list",
+              "api/recipes/detail",
+              "api/recipes/user-recipes"
+            ]
+          },
+          {
+            "group": "Users & Profiles",
+            "pages": ["api/users/list", "api/profiles/get", "api/profiles/update", "api/profiles/block"]
+          },
+          {
+            "group": "Favorites & Uploads",
+            "pages": ["api/favorites/list", "api/favorites/add", "api/favorites/delete", "api/upload"]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Community recipe sharing with title, description, ingredients, and step-by-step instructions",
+    "User authentication with registration and login via Supabase Auth",
+    "Favorites system to save and manage preferred recipes",
+    "Recipe search and paginated browsing (16 recipes per page)",
+    "User profiles with avatar, bio, and public recipe listings",
+    "Image uploads for recipes and avatars",
+    "Admin controls including user blocking/unblocking",
+    "Recipe visibility toggling (public/hidden)"
+  ],
+  "publicApiSurface": [
+    "POST /api/auth/register",
+    "POST /api/auth/login",
+    "GET /api/recetas",
+    "POST /api/recetas",
+    "GET /api/recetas/[id]",
+    "PUT /api/recetas/[id]",
+    "DELETE /api/recetas/[id]",
+    "PATCH /api/recetas/[id]",
+    "GET /api/recetas/usuario/[id]",
+    "GET /api/usuarios",
+    "GET /api/perfil/[id]",
+    "PUT /api/perfil/[id]",
+    "PATCH /api/perfil/bloquear",
+    "GET /api/favoritos",
+    "POST /api/favoritos",
+    "DELETE /api/favoritos/[id]",
+    "POST /api/upload"
+  ]
+}
