@@ -59,9 +59,9 @@ You do not need to provide a file name in the request.
   If `oldFileName` is provided and the deletion of the old file fails, the error is logged server-side but does not block the upload. The new file is still uploaded and its URL is returned.
 </Note>
 
-<RequestExample>
+## Example requests
 
-```bash cURL — upload a recipe image
+```bash Upload a recipe image
 curl --request POST \
   --url https://your-app.vercel.app/api/upload \
   --header 'Cookie: sb-access-token=<your-session-token>' \
@@ -69,7 +69,7 @@ curl --request POST \
   --form 'bucket=recetas'
 ```
 
-```bash cURL — replace an existing avatar
+```bash Replace an existing avatar
 curl --request POST \
   --url https://your-app.vercel.app/api/upload \
   --header 'Cookie: sb-access-token=<your-session-token>' \
@@ -78,32 +78,28 @@ curl --request POST \
   --form 'oldFileName=avatar-f0e9d8c7-b6a5-4321-fedc-ba9876543210-1700000000000.png'
 ```
 
-</RequestExample>
+## Example responses
 
-<ResponseExample>
-
-```json 200
+```json 200 OK
 {
   "url": "https://your-project.supabase.co/storage/v1/object/public/recetas/receta-f0e9d8c7-b6a5-4321-fedc-ba9876543210-1700000000000.jpg"
 }
 ```
 
-```json 401
+```json 401 Unauthorized
 {
   "error": "No autorizado para subir archivos"
 }
 ```
 
-```json 400
+```json 400 File too large
 {
   "error": "La imagen es demasiado grande. El máximo es 5MB."
 }
 ```
 
-```json 400
+```json 400 Invalid file type
 {
   "error": "El archivo debe ser una imagen válida."
 }
 ```
-
-</ResponseExample>

@@ -39,28 +39,24 @@ Returns a confirmation message on success.
   If the specified recipe is not in the user's favorites, Supabase performs a no-op delete and still returns `200`. No error is raised for non-existent records.
 </Note>
 
-<RequestExample>
+## Example request
 
-```bash cURL
+```bash
 curl --request DELETE \
   --url https://your-app.vercel.app/api/favoritos/a1b2c3d4-e5f6-7890-abcd-ef1234567890 \
   --header 'Cookie: sb-access-token=<your-session-token>'
 ```
 
-</RequestExample>
+## Example responses
 
-<ResponseExample>
-
-```json 200
+```json 200 OK
 {
   "message": "Eliminado"
 }
 ```
 
-```json 401
+```json 401 Unauthorized
 {
   "error": "No autorizado"
 }
 ```
-
-</ResponseExample>

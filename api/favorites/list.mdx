@@ -19,9 +19,7 @@ No request body or query parameters required. The user is identified from the ac
 
 ## Response
 
-Returns an array of recipe objects. Each item is a full recipe record with the author's profile name joined.
-
-<ResponseField name="[]">Array of favorited recipe objects, ordered by the date they were saved (most recent first).</ResponseField>
+Returns a JSON array of recipe objects, ordered by the date they were saved (most recent first). Each item is a full recipe record with the author's profile name joined.
 
 <ResponseField name="[].id" type="string">
   Unique identifier of the recipe (UUID).
@@ -39,8 +37,16 @@ Returns an array of recipe objects. Each item is a full recipe record with the a
   Public URL of the recipe's cover image.
 </ResponseField>
 
-<ResponseField name="[].usuario_id" type="string">
+<ResponseField name="[].autor_id" type="string">
   UUID of the user who created the recipe.
+</ResponseField>
+
+<ResponseField name="[].oculta" type="boolean">
+  Whether the recipe is hidden from public listings.
+</ResponseField>
+
+<ResponseField name="[].fecha_creacion" type="string">
+  ISO 8601 timestamp of when the recipe was created.
 </ResponseField>
 
 <ResponseField name="[].perfiles" type="object">
@@ -60,26 +66,26 @@ Returns an array of recipe objects. Each item is a full recipe record with the a
 | `400` | Database error message | A Supabase query error occurred. |
 | `500` | `Error interno` | An unexpected server error occurred. |
 
-<RequestExample>
+## Example request
 
-```bash cURL
+```bash
 curl --request GET \
   --url https://your-app.vercel.app/api/favoritos \
   --header 'Cookie: sb-access-token=<your-session-token>'
 ```
 
-</RequestExample>
+## Example responses
 
-<ResponseExample>
-
-```json 200
+```json 200 OK
 [
   {
     "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
     "titulo": "Tacos de carnitas",
     "descripcion": "Receta tradicional de tacos de carnitas al estilo michoacano.",
     "imagen_url": "https://your-project.supabase.co/storage/v1/object/public/recetas/receta-user-id-1234567890.jpg",
-    "usuario_id": "f0e9d8c7-b6a5-4321-fedc-ba9876543210",
+    "autor_id": "f0e9d8c7-b6a5-4321-fedc-ba9876543210",
+    "oculta": false,
+    "fecha_creacion": "2024-03-15T10:30:00.000Z",
     "perfiles": {
       "nombre": "María López"
     }
@@ -87,10 +93,8 @@ curl --request GET \
 ]
 ```
 
-```json 401
+```json 401 Unauthorized
 {
   "error": "No autorizado"
 }
 ```
-
-</ResponseExample>
