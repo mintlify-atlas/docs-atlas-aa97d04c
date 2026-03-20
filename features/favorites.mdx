@@ -1,0 +1,53 @@
+---
+title: "Favorites"
+description: "Save and manage your favorite recipes on Sazón Comunitario."
+---
+
+The favorites feature lets you bookmark recipes you want to return to later. Your saved recipes are collected in a personal list that only you can see.
+
+## Adding a recipe to favorites
+
+Open any recipe's detail page at `/receta/[id]`. In the top-right area of the recipe content, you will find an **Añadir a favoritos** button.
+
+Click the button to save the recipe. The button label changes to **Quitar de favoritos** and its color switches to red to confirm the recipe has been saved.
+
+<Note>
+  You must be signed in to add or remove favorites. The button is not available to unauthenticated visitors.
+</Note>
+
+## Viewing your favorites
+
+Navigate to `/favoritos` to see all the recipes you have saved. The page title reads **Mis Favoritos** and displays your saved recipes in the same card grid used on the home page.
+
+Your favorites are ordered by the date you saved them, with the most recently added recipe appearing first.
+
+If you have not saved any recipes yet, the page shows a message and a link to explore the home page.
+
+## Removing a recipe from favorites
+
+You can remove a recipe from your favorites in two ways:
+
+<CardGroup cols={2}>
+  <Card title="From the recipe detail page" icon="book-open">
+    Open the recipe and click **Quitar de favoritos**. The button reverts to **Añadir a favoritos** immediately.
+  </Card>
+  <Card title="From your favorites list" icon="heart">
+    On the `/favoritos` page, click any recipe card to open the detail page, then click **Quitar de favoritos**.
+  </Card>
+</CardGroup>
+
+## How favorites are stored
+
+Each favorite is a row in the `favoritos` table linking a user to a recipe:
+
+| Column | Description |
+|---|---|
+| `usuario_id` | The ID of the user who saved the recipe |
+| `receta_id` | The ID of the saved recipe |
+| `fecha_guardado` | The timestamp when the recipe was saved |
+
+The combination of `usuario_id` and `receta_id` is unique — a user can only save the same recipe once. Attempting to add a recipe that is already in your favorites has no effect.
+
+<Tip>
+  If a recipe is deleted by its author, it is automatically removed from all users' favorites lists because the `receta_id` foreign key no longer points to a valid row.
+</Tip>

@@ -1,0 +1,66 @@
+---
+title: "Remove from favorites"
+description: "Remove a recipe from the authenticated user's favorites list."
+---
+
+<Warning>
+  This endpoint requires authentication. Only the owner of the favorite record can delete it — the query is scoped to the current user's `usuario_id`.
+</Warning>
+
+## Endpoint
+
+```
+DELETE /api/favoritos/[id]
+```
+
+## Path parameters
+
+<ParamField path="id" type="string" required>
+  The UUID of the recipe (`receta_id`) to remove from favorites. This is the recipe's ID, not a separate favorites record ID.
+</ParamField>
+
+## Response
+
+Returns a confirmation message on success.
+
+<ResponseField name="message" type="string">
+  Confirmation string. Value is `"Eliminado"` on success.
+</ResponseField>
+
+## Error responses
+
+| Status | Error | Description |
+|--------|-------|-------------|
+| `401` | `No autorizado` | No active session or invalid session token. |
+| `400` | Database error message | A Supabase delete error occurred. |
+| `500` | `Error interno` | An unexpected server error occurred. |
+
+<Note>
+  If the specified recipe is not in the user's favorites, Supabase performs a no-op delete and still returns `200`. No error is raised for non-existent records.
+</Note>
+
+<RequestExample>
+
+```bash cURL
+curl --request DELETE \
+  --url https://your-app.vercel.app/api/favoritos/a1b2c3d4-e5f6-7890-abcd-ef1234567890 \
+  --header 'Cookie: sb-access-token=<your-session-token>'
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json 200
+{
+  "message": "Eliminado"
+}
+```
+
+```json 401
+{
+  "error": "No autorizado"
+}
+```
+
+</ResponseExample>

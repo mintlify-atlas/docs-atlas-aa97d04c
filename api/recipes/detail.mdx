@@ -1,0 +1,280 @@
+---
+title: 'Recipe detail'
+description: 'Get, update, delete, or toggle the visibility of a single recipe by its ID.'
+---
+
+## GET /api/recetas/[id]
+
+Returns full data for a single recipe, including the author's profile. If the requester is authenticated, the response also indicates whether they are the recipe's author or a site admin.
+
+<Note>No authentication is required to retrieve a recipe.</Note>
+
+### Path parameters
+
+<ParamField path="id" type="string" required>
+  UUID of the recipe to retrieve.
+</ParamField>
+
+### Response fields
+
+<ResponseField name="receta" type="object" required>
+  The full recipe object.
+  <Expandable title="receta properties">
+    <ResponseField name="id" type="string">
+      Unique UUID of the recipe.
+    </ResponseField>
+    <ResponseField name="titulo" type="string">
+      Recipe title.
+    </ResponseField>
+    <ResponseField name="descripcion" type="string">
+      Short description of the recipe.
+    </ResponseField>
+    <ResponseField name="tiempo" type="string">
+      Preparation and cooking time.
+    </ResponseField>
+    <ResponseField name="dificultad" type="string">
+      Difficulty level.
+    </ResponseField>
+    <ResponseField name="ingredientes" type="string">
+      JSON-encoded array of ingredient strings.
+    </ResponseField>
+    <ResponseField name="pasos" type="string">
+      JSON-encoded array of step strings.
+    </ResponseField>
+    <ResponseField name="imagen_url" type="string">
+      URL of the recipe image, or `null` if none.
+    </ResponseField>
+    <ResponseField name="oculta" type="boolean">
+      Whether the recipe is currently hidden from public listings.
+    </ResponseField>
+    <ResponseField name="fecha_creacion" type="string">
+      ISO 8601 timestamp of when the recipe was created.
+    </ResponseField>
+    <ResponseField name="autor_id" type="string">
+      UUID of the user who created the recipe.
+    </ResponseField>
+    <ResponseField name="perfiles" type="object">
+      Nested author profile.
+      <Expandable title="perfiles properties">
+        <ResponseField name="nombre" type="string">
+          Display name of the author.
+        </ResponseField>
+        <ResponseField name="avatar_url" type="string">
+          URL of the author's avatar image.
+        </ResponseField>
+        <ResponseField name="is_admin" type="boolean">
+          Whether the author has admin privileges.
+        </ResponseField>
+      </Expandable>
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="isOwnRecipe" type="boolean" required>
+  `true` if the authenticated user is the recipe's author. Always `false` for unauthenticated requests.
+</ResponseField>
+
+<ResponseField name="currentUserIsAdmin" type="boolean" required>
+  `true` if the authenticated user has admin privileges. Always `false` for unauthenticated requests.
+</ResponseField>
+
+### Example request
+
+```bash
+curl -X GET "https://example.com/api/recetas/a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+```
+
+### Example response
+
+```json
+{
+  "receta": {
+    "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "titulo": "Pasta al pesto",
+    "descripcion": "Una receta clásica italiana con albahaca fresca.",
+    "tiempo": "20 minutos",
+    "dificultad": "Fácil",
+    "ingredientes": "[\"pasta\", \"albahaca\", \"ajo\"]",
+    "pasos": "[\"Cocer la pasta.\", \"Mezclar con el pesto.\"]",
+    "imagen_url": "https://example.com/images/pasta.jpg",
+    "oculta": false,
+    "fecha_creacion": "2024-03-15T10:30:00.000Z",
+    "autor_id": "f1e2d3c4-b5a6-7890-abcd-ef0987654321",
+    "perfiles": {
+      "nombre": "María García",
+      "avatar_url": "https://example.com/avatars/maria.jpg",
+      "is_admin": false
+    }
+  },
+  "isOwnRecipe": false,
+  "currentUserIsAdmin": false
+}
+```
+
+### Error responses
+
+| Status | Condition |
+|--------|-----------|
+| `400`  | Database query error |
+| `404`  | No recipe found with the given ID |
+| `500`  | Unexpected server error |
+
+---
+
+## PUT /api/recetas/[id]
+
+Replaces the content of an existing recipe. The update only applies when the authenticated user is the recipe's author — the query filters by both `id` and `autor_id`.
+
+<Warning>Authentication is required. The request must come from the recipe's author. Requests from other authenticated users silently update zero rows.</Warning>
+
+### Path parameters
+
+<ParamField path="id" type="string" required>
+  UUID of the recipe to update.
+</ParamField>
+
+### Request body
+
+<ParamField body="titulo" type="string" required>
+  Updated title. Maximum 60 characters.
+</ParamField>
+
+<ParamField body="descripcion" type="string" required>
+  Updated description. Maximum 300 characters.
+</ParamField>
+
+<ParamField body="tiempo" type="string" required>
+  Updated preparation and cooking time.
+</ParamField>
+
+<ParamField body="dificultad" type="string">
+  Updated difficulty level.
+</ParamField>
+
+<ParamField body="ingredientes" type="string[]" required>
+  Updated list of ingredients. At least one non-empty string is required.
+</ParamField>
+
+<ParamField body="pasos" type="string[]" required>
+  Updated list of preparation steps. At least one non-empty string is required.
+</ParamField>
+
+<ParamField body="imagen_url" type="string">
+  Updated image URL.
+</ParamField>
+
+### Example request
+
+```bash
+curl -X PUT "https://example.com/api/recetas/a1b2c3d4-e5f6-7890-abcd-ef1234567890" \
+  -H "Content-Type: application/json" \
+  -H "Cookie: <session-cookie>" \
+  -d '{
+    "titulo": "Pasta al pesto mejorada",
+    "descripcion": "Versión actualizada con piñones tostados.",
+    "tiempo": "25 minutos",
+    "dificultad": "Fácil",
+    "ingredientes": ["pasta", "albahaca", "ajo", "piñones", "aceite de oliva"],
+    "pasos": ["Cocer la pasta.", "Tostar los piñones.", "Preparar el pesto.", "Mezclar y servir."],
+    "imagen_url": "https://example.com/images/pasta-v2.jpg"
+  }'
+```
+
+### Example response
+
+```json
+{
+  "message": "Receta actualizada correctamente"
+}
+```
+
+### Error responses
+
+| Status | Condition |
+|--------|-----------|
+| `400`  | Missing required fields, validation failure, or database error |
+| `401`  | No authenticated session |
+| `500`  | Unexpected server error |
+
+---
+
+## DELETE /api/recetas/[id]
+
+Permanently deletes a recipe. The delete query filters by both `id` and `autor_id`, so only the recipe's author can delete it.
+
+<Warning>Authentication is required. The request must come from the recipe's author. This action is irreversible.</Warning>
+
+### Path parameters
+
+<ParamField path="id" type="string" required>
+  UUID of the recipe to delete.
+</ParamField>
+
+### Example request
+
+```bash
+curl -X DELETE "https://example.com/api/recetas/a1b2c3d4-e5f6-7890-abcd-ef1234567890" \
+  -H "Cookie: <session-cookie>"
+```
+
+### Example response
+
+```json
+{
+  "message": "Receta eliminada correctamente"
+}
+```
+
+### Error responses
+
+| Status | Condition |
+|--------|-----------|
+| `400`  | Database error |
+| `401`  | No authenticated session |
+| `500`  | Unexpected server error |
+
+---
+
+## PATCH /api/recetas/[id]
+
+Sets the visibility of a recipe by updating its `oculta` field. This endpoint is restricted to users with admin privileges.
+
+<Warning>Authentication is required and the authenticated user must have `is_admin: true` in their profile. Non-admin users receive `403 Forbidden`.</Warning>
+
+### Path parameters
+
+<ParamField path="id" type="string" required>
+  UUID of the recipe whose visibility will be changed.
+</ParamField>
+
+### Request body
+
+<ParamField body="oculta" type="boolean" required>
+  Set to `true` to hide the recipe from public listings, or `false` to make it visible.
+</ParamField>
+
+### Example request
+
+```bash
+curl -X PATCH "https://example.com/api/recetas/a1b2c3d4-e5f6-7890-abcd-ef1234567890" \
+  -H "Content-Type: application/json" \
+  -H "Cookie: <session-cookie>" \
+  -d '{"oculta": true}'
+```
+
+### Example response
+
+```json
+{
+  "message": "Visibilidad de la receta actualizada"
+}
+```
+
+### Error responses
+
+| Status | Condition |
+|--------|-----------|
+| `400`  | Database error |
+| `401`  | No authenticated session |
+| `403`  | Authenticated user does not have admin privileges |
+| `500`  | Unexpected server error |

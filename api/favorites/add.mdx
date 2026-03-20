@@ -1,0 +1,76 @@
+---
+title: "Add to favorites"
+description: "Add a recipe to the authenticated user's favorites list."
+---
+
+<Warning>
+  This endpoint requires authentication. Requests without a valid session return `401 No autorizado`.
+</Warning>
+
+## Endpoint
+
+```
+POST /api/favoritos
+```
+
+## Request body
+
+<ParamField body="recetaId" type="string" required>
+  The UUID of the recipe to add to favorites.
+</ParamField>
+
+## Response
+
+Returns a confirmation message on success.
+
+<ResponseField name="message" type="string">
+  Confirmation string. Value is `"Añadido a favoritos"` on success.
+</ResponseField>
+
+## Error responses
+
+| Status | Error | Description |
+|--------|-------|-------------|
+| `401` | `No autorizado` | No active session or invalid session token. |
+| `400` | Database error message | A Supabase insert error occurred. This includes cases where the recipe is already in the user's favorites (unique constraint violation). |
+| `500` | `Error interno` | An unexpected server error occurred. |
+
+<Note>
+  The `favoritos` table enforces uniqueness on the `(usuario_id, receta_id)` pair. Attempting to add a recipe that is already favorited returns a `400` with a database-level constraint error message.
+</Note>
+
+<RequestExample>
+
+```bash cURL
+curl --request POST \
+  --url https://your-app.vercel.app/api/favoritos \
+  --header 'Content-Type: application/json' \
+  --header 'Cookie: sb-access-token=<your-session-token>' \
+  --data '{
+    "recetaId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+  }'
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json 201
+{
+  "message": "Añadido a favoritos"
+}
+```
+
+```json 401
+{
+  "error": "No autorizado"
+}
+```
+
+```json 400
+{
+  "error": "duplicate key value violates unique constraint \"favoritos_usuario_id_receta_id_key\""
+}
+```
+
+</ResponseExample>

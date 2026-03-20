@@ -1,0 +1,114 @@
+---
+title: "Update profile"
+description: "Update the authenticated user's own profile information."
+---
+
+<Warning>
+  Authentication is required. You can only update your own profile — the
+  endpoint always writes to the profile that matches the authenticated session,
+  regardless of the `id` in the URL.
+</Warning>
+
+## Path parameters
+
+<ParamField path="id" type="string" required>
+  UUID of the profile to update. Must match the authenticated user's UUID.
+</ParamField>
+
+## Request body
+
+<ParamField body="nombre" type="string" required>
+  Display name for the profile. Leading and trailing whitespace is stripped
+  before saving. Must be between 1 and 30 characters after trimming.
+</ParamField>
+
+<ParamField body="sobre_mi" type="string">
+  Short bio for the profile. Leading and trailing whitespace is stripped before
+  saving. Maximum 300 characters after trimming. Pass `null` or omit to clear
+  the field.
+</ParamField>
+
+<ParamField body="avatar_url" type="string">
+  URL pointing to the user's avatar image. Pass `null` or omit to clear the
+  field.
+</ParamField>
+
+## Validation rules
+
+- `nombre` is required and cannot be blank (empty string or whitespace only).
+- `nombre` must not exceed **30 characters** after trimming.
+- `sobre_mi`, if provided, must not exceed **300 characters** after trimming.
+
+## Examples
+
+<CodeGroup>
+
+```bash Full update
+curl --request PUT \
+  --url 'https://yourdomain.com/api/perfil/a1b2c3d4-e5f6-7890-abcd-ef1234567890' \
+  --cookie 'sb-access-token=<session-cookie>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "nombre": "María García",
+    "sobre_mi": "Amante de la cocina tradicional.",
+    "avatar_url": "https://example.com/avatars/maria.png"
+  }'
+```
+
+```bash Clear optional fields
+curl --request PUT \
+  --url 'https://yourdomain.com/api/perfil/a1b2c3d4-e5f6-7890-abcd-ef1234567890' \
+  --cookie 'sb-access-token=<session-cookie>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "nombre": "María García",
+    "sobre_mi": null,
+    "avatar_url": null
+  }'
+```
+
+</CodeGroup>
+
+### 200 — success
+
+```json
+{
+  "message": "Perfil actualizado correctamente"
+}
+```
+
+### 400 — validation error
+
+```json
+{
+  "error": "El nombre no puede estar en blanco."
+}
+```
+
+```json
+{
+  "error": "El nombre no puede exceder los 30 caracteres."
+}
+```
+
+```json
+{
+  "error": "La sección 'Sobre mí' no puede exceder los 300 caracteres."
+}
+```
+
+### 401 — unauthenticated
+
+```json
+{
+  "error": "No autorizado"
+}
+```
+
+### 500 — internal server error
+
+```json
+{
+  "error": "Error interno del servidor"
+}
+```

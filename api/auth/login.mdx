@@ -1,0 +1,105 @@
+---
+title: 'Login'
+description: 'Authenticate a user and create a session.'
+---
+
+## POST /api/auth/login
+
+Authenticates a user with email and password. On success, Supabase sets session cookies automatically. Accounts flagged as blocked are denied access regardless of credentials.
+
+## Request body
+
+<ParamField body="email" type="string" required>
+  The user's email address.
+</ParamField>
+
+<ParamField body="password" type="string" required>
+  The user's password.
+</ParamField>
+
+## Response
+
+### 200 — Success
+
+<ResponseField name="message" type="string">
+  Confirmation string. Value: `"Login exitoso"`.
+</ResponseField>
+
+<ResponseField name="user" type="object">
+  The authenticated Supabase Auth user object.
+  <Expandable title="properties">
+    <ResponseField name="id" type="string">
+      Unique identifier for the user (UUID).
+    </ResponseField>
+    <ResponseField name="email" type="string">
+      The authenticated user's email address.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<Note>
+  Supabase sets session cookies on the response automatically. You do not need to manage tokens manually for browser-based clients.
+</Note>
+
+### 400 — Invalid credentials
+
+<ResponseField name="error" type="string">
+  A Supabase Auth error message — for example, `"Invalid login credentials"` when the email or password is incorrect.
+</ResponseField>
+
+### 403 — Account blocked
+
+Returned when the user's profile has `bloqueado = true`. The session is signed out immediately after this check.
+
+<ResponseField name="error" type="string">
+  Value: `"Tu cuenta ha sido bloqueada por un administrador. No puedes iniciar sesión."`
+</ResponseField>
+
+<Warning>
+  When a 403 is returned, the user was authenticated by Supabase but the session is immediately invalidated server-side. No active session is created.
+</Warning>
+
+### 500 — Server error
+
+<ResponseField name="error" type="string">
+  Possible values:
+
+  - `"Error al verificar el estado de la cuenta."` — the profile lookup failed after authentication. The session is signed out.
+  - `"Error interno del servidor"` — an unexpected error occurred.
+</ResponseField>
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://your-domain.com/api/auth/login \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "email": "usuario@ejemplo.com",
+    "password": "contraseña-segura"
+  }'
+```
+
+## Example responses
+
+```json Success (200)
+{
+  "message": "Login exitoso",
+  "user": {
+    "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "email": "usuario@ejemplo.com"
+  }
+}
+```
+
+```json Invalid credentials (400)
+{
+  "error": "Invalid login credentials"
+}
+```
+
+```json Blocked account (403)
+{
+  "error": "Tu cuenta ha sido bloqueada por un administrador. No puedes iniciar sesión."
+}
+```

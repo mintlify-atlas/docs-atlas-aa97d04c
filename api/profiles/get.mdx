@@ -1,0 +1,120 @@
+---
+title: 'Get profile'
+description: 'Retrieve a user profile by UUID, or fetch your own profile using the "me" shortcut.'
+---
+
+<Note>
+  Authentication is optional when fetching a profile by UUID. However, using
+  `me` as the `id` requires an authenticated session — the endpoint returns 401
+  if no session is found.
+</Note>
+
+## Path parameters
+
+<ParamField path="id" type="string" required>
+  UUID of the profile to retrieve. Pass `me` to return the profile of the
+  currently authenticated user.
+</ParamField>
+
+## The "me" shortcut
+
+When you pass `me` as the `id`, the server resolves it to the authenticated
+user's own UUID before querying the database. This is equivalent to calling
+`GET /api/perfil/{your-uuid}` but without needing to know your UUID in advance.
+
+<Warning>
+  `GET /api/perfil/me` returns **401** if the request is made without a valid
+  authenticated session.
+</Warning>
+
+## Response fields
+
+<ResponseField name="id" type="string" required>
+  UUID of the profile.
+</ResponseField>
+
+<ResponseField name="nombre" type="string" required>
+  Display name of the user.
+</ResponseField>
+
+<ResponseField name="avatar_url" type="string">
+  URL of the user's avatar image. May be `null`.
+</ResponseField>
+
+<ResponseField name="sobre_mi" type="string">
+  Short bio written by the user. May be `null`.
+</ResponseField>
+
+<ResponseField name="bloqueado" type="boolean" required>
+  Whether the account is blocked by an administrator.
+</ResponseField>
+
+<ResponseField name="is_admin" type="boolean" required>
+  Whether this user has administrator privileges.
+</ResponseField>
+
+<ResponseField name="isOwnProfile" type="boolean" required>
+  `true` when the authenticated user is viewing their own profile.
+  Always `false` for unauthenticated requests.
+</ResponseField>
+
+<ResponseField name="currentUserIsAdmin" type="boolean" required>
+  `true` when the currently authenticated user has administrator privileges.
+  Always `false` for unauthenticated requests.
+</ResponseField>
+
+## Examples
+
+<CodeGroup>
+
+```bash Fetch by UUID
+curl --request GET \
+  --url 'https://yourdomain.com/api/perfil/a1b2c3d4-e5f6-7890-abcd-ef1234567890'
+```
+
+```bash Fetch own profile
+curl --request GET \
+  --url 'https://yourdomain.com/api/perfil/me' \
+  --cookie 'sb-access-token=<session-cookie>'
+```
+
+</CodeGroup>
+
+### 200 — success
+
+```json
+{
+  "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "nombre": "María García",
+  "avatar_url": "https://example.com/avatars/maria.png",
+  "sobre_mi": "Amante de la cocina tradicional.",
+  "bloqueado": false,
+  "is_admin": false,
+  "isOwnProfile": true,
+  "currentUserIsAdmin": false
+}
+```
+
+### 401 — unauthenticated "me" request
+
+```json
+{
+  "error": "No autorizado o ID no proporcionado"
+}
+```
+
+### 404 — profile not found
+
+```json
+{
+  "error": "Perfil no encontrado"
+}
+```
+
+### 500 — internal server error
+
+```json
+{
+  "error": "Error interno del servidor"
+}
+```

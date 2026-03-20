@@ -1,0 +1,87 @@
+---
+title: 'Block or unblock a user'
+description: 'Set or clear the blocked status on a user account. Requires administrator privileges.'
+---
+
+<Warning>
+  This endpoint requires authentication and administrator privileges. Requests
+  from non-admin users are rejected with **403**.
+</Warning>
+
+## Request body
+
+<ParamField body="targetUserId" type="string" required>
+  UUID of the user account to block or unblock.
+</ParamField>
+
+<ParamField body="bloqueado" type="boolean" required>
+  Set to `true` to block the account or `false` to unblock it.
+</ParamField>
+
+## Examples
+
+<CodeGroup>
+
+```bash Block a user
+curl --request PATCH \
+  --url 'https://yourdomain.com/api/perfil/bloquear' \
+  --cookie 'sb-access-token=<admin-session-cookie>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "targetUserId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "bloqueado": true
+  }'
+```
+
+```bash Unblock a user
+curl --request PATCH \
+  --url 'https://yourdomain.com/api/perfil/bloquear' \
+  --cookie 'sb-access-token=<admin-session-cookie>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "targetUserId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "bloqueado": false
+  }'
+```
+
+</CodeGroup>
+
+### 200 — success
+
+```json
+{
+  "message": "Operación exitosa"
+}
+```
+
+### 400 — database error
+
+```json
+{
+  "error": "<database error message>"
+}
+```
+
+### 401 — unauthenticated
+
+```json
+{
+  "error": "No autorizado"
+}
+```
+
+### 403 — insufficient privileges
+
+```json
+{
+  "error": "No tienes permisos de administrador"
+}
+```
+
+### 500 — internal server error
+
+```json
+{
+  "error": "Error interno"
+}
+```

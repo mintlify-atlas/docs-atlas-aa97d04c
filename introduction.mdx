@@ -1,0 +1,70 @@
+---
+title: "Introduction"
+description: "Sazón Comunitario is a community-driven recipe sharing platform where you can discover, share, and save your favorite cooking recipes."
+---
+
+## What is Sazón Comunitario?
+
+Sazón Comunitario is a full-stack web application built with **Next.js** and **Supabase** that brings together cooking enthusiasts in a shared community. Whether you're a seasoned chef or just starting in the kitchen, the platform makes it easy to explore home-cooked recipes, share your own creations, and connect with other passionate cooks.
+
+<CardGroup cols={2}>
+  <Card title="Quick Start" icon="rocket" href="/quickstart">
+    Get the app running locally in minutes
+  </Card>
+  <Card title="Environment Setup" icon="gear" href="/environment-setup">
+    Configure Supabase and environment variables
+  </Card>
+  <Card title="Core Features" icon="star" href="/features/recipes">
+    Explore recipes, profiles, favorites, and search
+  </Card>
+  <Card title="API Reference" icon="code" href="/api/auth/register">
+    Full REST API documentation
+  </Card>
+</CardGroup>
+
+## Key features
+
+<CardGroup cols={2}>
+  <Card title="Recipe sharing" icon="book-open">
+    Upload recipes with titles, descriptions, ingredients, step-by-step instructions, difficulty level, and preparation time.
+  </Card>
+  <Card title="User profiles" icon="user">
+    Personalized profiles with avatars, bios, and a public listing of all your shared recipes.
+  </Card>
+  <Card title="Favorites" icon="heart">
+    Save recipes you love to your personal favorites list for quick access later.
+  </Card>
+  <Card title="Search & browse" icon="magnifying-glass">
+    Search recipes by title and browse paginated results — 16 recipes per page, sorted by most recent.
+  </Card>
+  <Card title="Image uploads" icon="image">
+    Upload photos for your recipes and profile avatar, stored securely via Supabase Storage.
+  </Card>
+  <Card title="Admin controls" icon="shield">
+    Administrators can block or unblock user accounts and manage recipe visibility.
+  </Card>
+</CardGroup>
+
+## Tech stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | Next.js 16, React 19, TailwindCSS 4 |
+| Backend | Next.js API Routes (Edge-compatible) |
+| Database | Supabase (PostgreSQL) |
+| Auth | Supabase Auth |
+| Storage | Supabase Storage |
+| Deployment | Vercel (recommended) |
+
+## Architecture overview
+
+The application follows a full-stack Next.js architecture:
+
+- **Pages** (`src/app/`) — React Server and Client Components for each route
+- **API Routes** (`src/app/api/`) — REST endpoints handling all data operations
+- **Supabase client** (`src/utils/supabase/`) — Server and browser Supabase clients
+- **Database** — Three core tables: `perfiles`, `recetas`, and `favoritos`
+
+<Note>
+  All API routes validate user authentication via Supabase session cookies before performing any write operations.
+</Note>

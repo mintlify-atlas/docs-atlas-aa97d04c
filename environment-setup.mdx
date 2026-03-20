@@ -1,0 +1,111 @@
+---
+title: "Environment setup"
+description: "Configure environment variables and understand the project configuration for Sazón Comunitario."
+---
+
+Sazón Comunitario requires two environment variables to connect to Supabase. This guide explains what each variable does, where to find the values, and how to configure your local environment.
+
+## Environment variables
+
+Create a file named `.env.local` in the root of the project. Next.js automatically loads this file during development and it is never sent to the browser unless a variable is prefixed with `NEXT_PUBLIC_`.
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+<Warning>
+  Never commit `.env.local` to version control. It contains credentials that grant access to your database.
+</Warning>
+
+### Variable reference
+
+| Variable | Required | Description |
+|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | Yes | The base URL of your Supabase project's REST and Auth API. |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes | The public anonymous key used for unauthenticated and client-side Supabase requests. |
+
+<Note>
+  Both variables are prefixed with `NEXT_PUBLIC_` because the Supabase browser client (`src/utils/supabase/client.js`) reads them directly in client-side code. Without this prefix, Next.js would keep them server-side only and the client would fail to initialize.
+</Note>
+
+## How to get your Supabase credentials
+
+<Steps>
+  <Step title="Log in to Supabase">
+    Go to [https://supabase.com](https://supabase.com) and sign in to your account. If you don't have one, create a free account.
+  </Step>
+
+  <Step title="Open your project">
+    From the Supabase dashboard, select the project you want to connect to, or create a new one by clicking **New project**.
+  </Step>
+
+  <Step title="Navigate to project settings">
+    In the left sidebar, click **Project Settings**, then select the **Data API** section (previously labeled **API**).
+  </Step>
+
+  <Step title="Copy the project URL and anon key">
+    Under **Project URL**, copy the URL — this is your `NEXT_PUBLIC_SUPABASE_URL`.
+
+    Under **Project API keys**, copy the `anon` / `public` key — this is your `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+
+    <Tip>
+      Use the copy button next to each value to avoid accidentally including extra whitespace.
+    </Tip>
+  </Step>
+
+  <Step title="Paste the values into .env.local">
+    Update your `.env.local` file with the copied values:
+
+    ```env
+    NEXT_PUBLIC_SUPABASE_URL=https://xxxxxxxxxxxxxxxxxxxx.supabase.co
+    NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+    ```
+  </Step>
+</Steps>
+
+## How the Supabase client uses these variables
+
+The browser-side Supabase client is initialized in `src/utils/supabase/client.js`:
+
+```js
+import { createBrowserClient } from '@supabase/ssr'
+
+export function createClient() {
+  return createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  )
+}
+```
+
+This client is used throughout the app for authentication and data fetching on the client side. If either variable is missing or incorrect, the app will fail to connect to the database.
+
+## Next.js configuration
+
+The `next.config.mjs` file is intentionally minimal — no custom configuration is required:
+
+```js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  /* config options here */
+};
+
+export default nextConfig;
+```
+
+Next.js defaults handle everything the app needs. You do not need to modify this file to run the project locally.
+
+## Available npm scripts
+
+The following scripts are defined in `package.json`:
+
+| Script | Command | Description |
+|---|---|---|
+| `dev` | `npm run dev` | Starts the development server at `http://localhost:3000` with hot reloading. |
+| `build` | `npm run build` | Compiles the application for production. |
+| `start` | `npm run start` | Starts the production server after a build. Run `npm run build` first. |
+
+<Tip>
+  Use `npm run dev` for local development. Only run `npm run build` and `npm run start` when you want to test the production build locally.
+</Tip>

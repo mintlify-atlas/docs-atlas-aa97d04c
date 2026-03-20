@@ -1,0 +1,160 @@
+---
+title: "Supabase setup"
+description: "How to create and configure the Supabase project, database tables, storage buckets, and environment variables for Sazón Comunitario."
+---
+
+Sazón Comunitario uses [Supabase](https://supabase.com) for its PostgreSQL database, authentication, and file storage. Follow the steps below to set up a new Supabase project from scratch.
+
+<Steps>
+  <Step title="Create a Supabase project">
+    1. Go to [supabase.com](https://supabase.com) and sign in or create a free account.
+    2. Click **New project**.
+    3. Choose an organization, give the project a name (e.g. `sazon-comunitario`), and set a strong database password.
+    4. Select the region closest to your users and click **Create new project**.
+
+    Wait for the project to finish provisioning before continuing.
+  </Step>
+
+  <Step title="Get your project credentials">
+    You need two values from your Supabase project settings:
+
+    1. Open your project in the Supabase dashboard.
+    2. Navigate to **Project Settings → API**.
+    3. Copy the **Project URL** and the **anon / public** key.
+
+    You will add these to your `.env.local` file in a later step.
+
+    <Warning>
+      Never commit your `.env.local` file to version control. The anon key is safe to expose in client-side code because row-level security controls what it can access, but your service role key (if you generate one) must stay secret.
+    </Warning>
+  </Step>
+
+  <Step title="Create the database tables">
+    Open the **SQL Editor** in your Supabase dashboard and run the following statements.
+
+    <CodeGroup>
+
+    ```sql perfiles table
+    create table public.perfiles (
+      id          uuid primary key references auth.users(id) on delete cascade,
+      nombre      varchar(30)  not null,
+      sobre_mi    text         check (char_length(sobre_mi) <= 300),
+      avatar_url  text,
+      is_admin    boolean      not null default false,
+      bloqueado   boolean      not null default false
+    );
+    ```
+
+    ```sql recetas table
+    create table public.recetas (
+      id             uuid primary key default gen_random_uuid(),
+      autor_id       uuid          not null references public.perfiles(id) on delete cascade,
+      titulo         varchar(60)   not null,
+      descripcion    text          not null check (char_length(descripcion) <= 300),
+      tiempo         text          not null,
+      dificultad     text,
+      ingredientes   jsonb         not null default '[]',
+      pasos          jsonb         not null default '[]',
+      imagen_url     text,
+      oculta         boolean       not null default false,
+      fecha_creacion timestamp     not null default now()
+    );
+    ```
+
+    ```sql favoritos table
+    create table public.favoritos (
+      id              uuid primary key default gen_random_uuid(),
+      usuario_id      uuid not null references public.perfiles(id) on delete cascade,
+      receta_id       uuid not null references public.recetas(id) on delete cascade,
+      fecha_guardado  timestamp not null default now()
+    );
+    ```
+
+    </CodeGroup>
+
+    <Tip>
+      The `on delete cascade` clauses ensure that when a user or recipe is deleted, all related rows (recipes, favorites) are removed automatically.
+    </Tip>
+  </Step>
+
+  <Step title="Set up Supabase Storage buckets">
+    The upload endpoint (`POST /api/upload`) uses two storage buckets — one for recipe images and one for user avatars. Create both buckets in the Supabase dashboard:
+
+    1. Navigate to **Storage** in your Supabase project.
+    2. Click **New bucket** and create a bucket named `recetas`. Set it to **Public**.
+    3. Click **New bucket** again and create a bucket named `avatars`. Set it to **Public**.
+
+    Both buckets must be public so the application can generate publicly accessible URLs via `getPublicUrl()`.
+
+    <Note>
+      The upload route accepts any bucket name passed in the `bucket` form field. The file is named `receta-{userId}-{timestamp}.{ext}` for recipe images and `avatar-{userId}-{timestamp}.{ext}` for avatars. Images larger than 5 MB are rejected by the API before reaching storage.
+    </Note>
+  </Step>
+
+  <Step title="Configure Row Level Security">
+    Supabase enables Row Level Security (RLS) on all tables by default. The application performs all data access through server-side Next.js API routes using the Supabase server client, which inherits the authenticated user's session from cookies.
+
+    Because all writes are validated and authorized in the API routes before the Supabase query is executed, you can keep RLS policies permissive for the service role while restricting direct client access.
+
+    A minimal setup is to enable RLS on all three tables and add a policy that allows all operations for authenticated users:
+
+    ```sql RLS policies
+    -- Allow authenticated users to read all public profiles and recipes
+    alter table public.perfiles  enable row level security;
+    alter table public.recetas   enable row level security;
+    alter table public.favoritos enable row level security;
+
+    -- Read-only public access to non-hidden recipes
+    create policy "Public recipes are readable"
+      on public.recetas for select
+      using (oculta = false);
+
+    -- Authenticated users can manage their own data
+    create policy "Users manage own profile"
+      on public.perfiles for all
+      using (auth.uid() = id);
+
+    create policy "Users manage own favorites"
+      on public.favoritos for all
+      using (auth.uid() = usuario_id);
+
+    create policy "Users manage own recipes"
+      on public.recetas for all
+      using (auth.uid() = autor_id);
+    ```
+
+    <Warning>
+      The API routes enforce additional business logic (admin checks, ownership validation, blocked-account detection) that RLS alone cannot express. Do not rely solely on RLS for authorization.
+    </Warning>
+  </Step>
+
+  <Step title="Add environment variables">
+    Create a `.env.local` file in the root of the Next.js project and add the credentials you copied in step 2:
+
+    ```env .env.local
+    NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
+    NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+    ```
+
+    Both variables are prefixed with `NEXT_PUBLIC_` so they are available in the browser Supabase client (`src/utils/supabase/client.js`) as well as in server-side API routes.
+
+    <Note>
+      If you are deploying to Vercel, add these same variables in **Project Settings → Environment Variables** instead of committing the file.
+    </Note>
+  </Step>
+</Steps>
+
+## Verify the setup
+
+After completing all steps, start the development server and confirm the following:
+
+- Registering a new user creates a row in `perfiles` with `bloqueado = false` and `is_admin = false`.
+- Logging in as that user succeeds and returns a session.
+- Creating a recipe inserts a row in `recetas` with `oculta = false`.
+- Uploading an image returns a public URL from the `recetas` or `avatars` bucket.
+
+```bash
+npm run dev
+```
+
+Open `http://localhost:3000` and walk through registration and recipe creation to confirm the database connection is working correctly.

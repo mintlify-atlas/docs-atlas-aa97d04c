@@ -1,0 +1,116 @@
+---
+title: 'User recipes'
+description: "List all recipes created by a specific user, including hidden ones."
+---
+
+## GET /api/recetas/usuario/[id]
+
+Returns all recipes authored by a specific user, along with that user's display name. Results are sorted by creation date descending.
+
+<Note>No authentication is required to call this endpoint.</Note>
+
+<Warning>
+  Unlike `GET /api/recetas`, this endpoint does **not** filter by `oculta`. All recipes for the user are returned, including hidden ones. Apply visibility filtering in your client if needed.
+</Warning>
+
+### Path parameters
+
+<ParamField path="id" type="string" required>
+  UUID of the user whose recipes you want to retrieve.
+</ParamField>
+
+### Response fields
+
+<ResponseField name="recetas" type="array" required>
+  All recipes authored by the user, ordered by `fecha_creacion` descending.
+  <Expandable title="Recipe object properties">
+    <ResponseField name="id" type="string">
+      Unique UUID of the recipe.
+    </ResponseField>
+    <ResponseField name="titulo" type="string">
+      Recipe title.
+    </ResponseField>
+    <ResponseField name="descripcion" type="string">
+      Short description of the recipe.
+    </ResponseField>
+    <ResponseField name="tiempo" type="string">
+      Preparation and cooking time.
+    </ResponseField>
+    <ResponseField name="dificultad" type="string">
+      Difficulty level.
+    </ResponseField>
+    <ResponseField name="ingredientes" type="string">
+      JSON-encoded array of ingredient strings.
+    </ResponseField>
+    <ResponseField name="pasos" type="string">
+      JSON-encoded array of step strings.
+    </ResponseField>
+    <ResponseField name="imagen_url" type="string">
+      URL of the recipe image, or `null` if none.
+    </ResponseField>
+    <ResponseField name="oculta" type="boolean">
+      Whether the recipe is hidden from public listings.
+    </ResponseField>
+    <ResponseField name="fecha_creacion" type="string">
+      ISO 8601 timestamp of when the recipe was created.
+    </ResponseField>
+    <ResponseField name="autor_id" type="string">
+      UUID of the recipe's author.
+    </ResponseField>
+    <ResponseField name="perfiles" type="object">
+      Nested author profile.
+      <Expandable title="perfiles properties">
+        <ResponseField name="nombre" type="string">
+          Display name of the author.
+        </ResponseField>
+        <ResponseField name="avatar_url" type="string">
+          URL of the author's avatar image.
+        </ResponseField>
+      </Expandable>
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="username" type="string" required>
+  Display name of the user. Falls back to `"Usuario Desconocido"` if no profile is found.
+</ResponseField>
+
+### Example request
+
+```bash
+curl -X GET "https://example.com/api/recetas/usuario/f1e2d3c4-b5a6-7890-abcd-ef0987654321"
+```
+
+### Example response
+
+```json
+{
+  "recetas": [
+    {
+      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "titulo": "Pasta al pesto",
+      "descripcion": "Una receta clásica italiana con albahaca fresca.",
+      "tiempo": "20 minutos",
+      "dificultad": "Fácil",
+      "ingredientes": "[\"pasta\", \"albahaca\", \"ajo\"]",
+      "pasos": "[\"Cocer la pasta.\", \"Mezclar con el pesto.\"]",
+      "imagen_url": "https://example.com/images/pasta.jpg",
+      "oculta": false,
+      "fecha_creacion": "2024-03-15T10:30:00.000Z",
+      "autor_id": "f1e2d3c4-b5a6-7890-abcd-ef0987654321",
+      "perfiles": {
+        "nombre": "María García",
+        "avatar_url": "https://example.com/avatars/maria.jpg"
+      }
+    }
+  ],
+  "username": "María García"
+}
+```
+
+### Error responses
+
+| Status | Condition |
+|--------|-----------|
+| `400`  | Missing `id` path parameter or database error |
+| `500`  | Unexpected server error |

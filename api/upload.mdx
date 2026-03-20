@@ -1,0 +1,109 @@
+---
+title: 'Upload image'
+description: 'Upload an image file to Supabase Storage for use as a recipe cover or user avatar.'
+---
+
+<Warning>
+  This endpoint requires authentication. Requests without a valid session return `401 No autorizado para subir archivos`.
+</Warning>
+
+## Endpoint
+
+```
+POST /api/upload
+```
+
+## Request
+
+Send a `multipart/form-data` request. Do not set `Content-Type` manually — let the HTTP client set the boundary automatically.
+
+<ParamField body="file" type="file" required>
+  The image file to upload. Must be a valid image type (any `image/*` MIME type). Maximum size is **5 MB**.
+</ParamField>
+
+<ParamField body="bucket" type="string" required>
+  The Supabase Storage bucket to upload into. Use `"recetas"` for recipe images or `"avatars"` for user profile pictures.
+</ParamField>
+
+<ParamField body="oldFileName" type="string">
+  The storage path of a previously uploaded file to delete before uploading the new one. Pass the file name returned by a prior upload. Omit this field (or pass an empty string) if no replacement is needed.
+</ParamField>
+
+## File naming
+
+The server generates the file name automatically using the pattern:
+
+- `receta-<user_id>-<timestamp>.<ext>` — for the `recetas` bucket
+- `avatar-<user_id>-<timestamp>.<ext>` — for the `avatars` bucket
+
+You do not need to provide a file name in the request.
+
+## Response
+
+<ResponseField name="url" type="string">
+  The public URL of the uploaded file in Supabase Storage. Use this URL to reference the image in recipe or profile records.
+</ResponseField>
+
+## Error responses
+
+| Status | Error | Description |
+|--------|-------|-------------|
+| `401` | `No autorizado para subir archivos` | No active session or invalid session token. |
+| `400` | `Faltan parámetros (archivo o bucket)` | The `file` or `bucket` field is missing from the form data. |
+| `400` | `El archivo debe ser una imagen válida.` | The uploaded file's MIME type does not start with `image/`. |
+| `400` | `La imagen es demasiado grande. El máximo es 5MB.` | The file exceeds the 5 MB size limit. |
+| `400` | Supabase error message | A storage upload error occurred. |
+| `500` | `Error interno del servidor` | An unexpected server error occurred. |
+
+<Note>
+  If `oldFileName` is provided and the deletion of the old file fails, the error is logged server-side but does not block the upload. The new file is still uploaded and its URL is returned.
+</Note>
+
+<RequestExample>
+
+```bash cURL — upload a recipe image
+curl --request POST \
+  --url https://your-app.vercel.app/api/upload \
+  --header 'Cookie: sb-access-token=<your-session-token>' \
+  --form 'file=@/path/to/photo.jpg' \
+  --form 'bucket=recetas'
+```
+
+```bash cURL — replace an existing avatar
+curl --request POST \
+  --url https://your-app.vercel.app/api/upload \
+  --header 'Cookie: sb-access-token=<your-session-token>' \
+  --form 'file=@/path/to/new-avatar.png' \
+  --form 'bucket=avatars' \
+  --form 'oldFileName=avatar-f0e9d8c7-b6a5-4321-fedc-ba9876543210-1700000000000.png'
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json 200
+{
+  "url": "https://your-project.supabase.co/storage/v1/object/public/recetas/receta-f0e9d8c7-b6a5-4321-fedc-ba9876543210-1700000000000.jpg"
+}
+```
+
+```json 401
+{
+  "error": "No autorizado para subir archivos"
+}
+```
+
+```json 400
+{
+  "error": "La imagen es demasiado grande. El máximo es 5MB."
+}
+```
+
+```json 400
+{
+  "error": "El archivo debe ser una imagen válida."
+}
+```
+
+</ResponseExample>

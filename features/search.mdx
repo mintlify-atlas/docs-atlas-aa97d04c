@@ -1,0 +1,94 @@
+---
+title: "Search"
+description: "Find recipes and users on Sazón Comunitario using the search feature."
+---
+
+Sazón Comunitario provides two separate search flows: one for discovering recipes by title, and one for finding users by name.
+
+## Searching for recipes
+
+Navigate to `/busquedaRecetas` to search the recipe catalog. Type a query into the search bar in the navigation and press enter, or append the `busqueda` query parameter directly to the URL:
+
+```
+/busquedaRecetas?busqueda=paella
+```
+
+Search is **case-insensitive** and matches any part of the recipe title. A search for `arroz` returns recipes titled "Arroz con leche", "Arroz negro", or "Paella de arroz" alike.
+
+If you open `/busquedaRecetas` without a query, the page shows the latest recipes — the same results as the home page feed.
+
+### Search results and pagination
+
+Recipe search results are paginated at **8 results per page**. When there are multiple pages, **Anterior** and **Siguiente** buttons appear below the grid to navigate between them.
+
+<Note>
+  Pagination controls are only shown when there is more than one page of results. If your search returns 8 or fewer recipes, no pagination is displayed.
+</Note>
+
+The page heading reflects your current query:
+
+```
+Búsqueda: paella
+```
+
+If no recipes match, the page displays:
+
+```
+No se han encontrado recetas para "paella".
+```
+
+### How the search query is passed
+
+The `busqueda` parameter is read from the URL's query string. Changing the search term resets the page to 1 automatically.
+
+```
+/busquedaRecetas?busqueda=tortilla&page=2&limit=8
+```
+
+| Parameter | Default | Description |
+|---|---|---|
+| `busqueda` | _(none)_ | Title search term (case-insensitive, partial match) |
+| `page` | `1` | Page number |
+| `limit` | `16` (home), `8` (search page) | Results per page |
+
+<Tip>
+  Only public recipes appear in search results. Recipes with `oculta = true` are excluded from all search queries.
+</Tip>
+
+## Searching for users
+
+Navigate to `/busquedaUsuarios` to search the community's user directory. Provide a query via the `busqueda` parameter:
+
+```
+/busquedaUsuarios?busqueda=maria
+```
+
+User search matches against the `nombre` (display name) field using the same case-insensitive, partial-match logic as recipe search.
+
+Opening `/busquedaUsuarios` without a query displays all registered users.
+
+### User search results
+
+Matching users are shown as cards in a responsive grid. Each card displays:
+- The user's avatar
+- Their display name
+- A preview of their bio (`sobre_mi`)
+
+Click any card to navigate to that user's profile page at `/perfilUsuario/[id]`.
+
+User search results are **not paginated** — all matching users appear on a single page.
+
+If no users match the query, the page displays:
+
+```
+No se han encontrado usuarios que coincidan con "maria".
+```
+
+## Differences between recipe and user search
+
+| | Recipe search | User search |
+|---|---|---|
+| URL | `/busquedaRecetas` | `/busquedaUsuarios` |
+| Matches against | Recipe title (`titulo`) | Display name (`nombre`) |
+| Pagination | Yes — 8 per page | No — all results shown |
+| Empty query shows | Latest recipes | All users |

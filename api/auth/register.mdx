@@ -1,0 +1,105 @@
+---
+title: 'Register'
+description: 'Create a new user account.'
+---
+
+## POST /api/auth/register
+
+Creates a new user account with Supabase Auth and initializes a user profile.
+
+## Request body
+
+<ParamField body="email" type="string" required>
+  The user's email address. Must be a valid, unique email.
+</ParamField>
+
+<ParamField body="password" type="string" required>
+  The user's password. Handled by Supabase Auth — minimum length and complexity rules apply.
+</ParamField>
+
+<ParamField body="nombre" type="string" required>
+  The display name for the user. Cannot be blank, cannot exceed 30 characters, and must be unique (case-insensitive) across all profiles.
+</ParamField>
+
+## Response
+
+### 200 — Success
+
+<ResponseField name="message" type="string">
+  Confirmation string. Value: `"Registro exitoso"`.
+</ResponseField>
+
+<ResponseField name="user" type="object">
+  The newly created Supabase Auth user object.
+  <Expandable title="properties">
+    <ResponseField name="id" type="string">
+      Unique identifier for the user (UUID).
+    </ResponseField>
+    <ResponseField name="email" type="string">
+      The email address used to register.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+### 400 — Validation error
+
+Returned when request fields fail validation checks.
+
+<ResponseField name="error" type="string">
+  Description of the validation failure. Possible values:
+
+  - `"El nombre no puede estar en blanco."` — `nombre` is missing or whitespace only.
+  - `"El nombre no puede exceder los 30 caracteres."` — `nombre` exceeds 30 characters.
+  - `"Ese nombre de usuario ya está en uso. Por favor, elige otro."` — the display name is already taken.
+  - A Supabase Auth error message — for example, if the email is already registered or the password is too weak.
+</ResponseField>
+
+### 500 — Server error
+
+<ResponseField name="error" type="string">
+  Possible values:
+
+  - `"Usuario registrado, pero hubo un error al crear su perfil"` — the Auth user was created but writing the profile record failed.
+  - `"Error interno del servidor"` — an unexpected error occurred.
+</ResponseField>
+
+<Warning>
+  When a 500 with the profile-creation message is returned, the Supabase Auth user **has** been created but the `perfiles` record has **not**. The user will be unable to log in successfully until the profile is created.
+</Warning>
+
+## Example request
+
+```bash
+curl --request POST \
+  --url https://your-domain.com/api/auth/register \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "email": "usuario@ejemplo.com",
+    "password": "contraseña-segura",
+    "nombre": "ChefAna"
+  }'
+```
+
+## Example responses
+
+```json Success (200)
+{
+  "message": "Registro exitoso",
+  "user": {
+    "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "email": "usuario@ejemplo.com"
+  }
+}
+```
+
+```json Validation error (400)
+{
+  "error": "Ese nombre de usuario ya está en uso. Por favor, elige otro."
+}
+```
+
+```json Server error (500)
+{
+  "error": "Error interno del servidor"
+}
+```

@@ -1,0 +1,87 @@
+---
+title: 'List users'
+description: 'Search and retrieve a list of user profiles.'
+---
+
+<Note>
+  Authentication is not required for this endpoint. Results are drawn from public profile data.
+</Note>
+
+## Query parameters
+
+<ParamField query="busqueda" type="string">
+  Case-insensitive search string matched against the `nombre` field using a
+  partial (contains) match. When omitted, the endpoint returns the 20 most
+  recently created profiles.
+</ParamField>
+
+## Response fields
+
+Returns a JSON array. Each element contains the following fields.
+
+<ResponseField name="id" type="string" required>
+  UUID of the user profile.
+</ResponseField>
+
+<ResponseField name="nombre" type="string" required>
+  Display name of the user.
+</ResponseField>
+
+<ResponseField name="avatar_url" type="string">
+  URL of the user's avatar image. May be `null` if not set.
+</ResponseField>
+
+<ResponseField name="sobre_mi" type="string">
+  Short bio written by the user. May be `null` if not set.
+</ResponseField>
+
+## Examples
+
+<CodeGroup>
+
+```bash Fetch first 20 profiles
+curl --request GET \
+  --url 'https://yourdomain.com/api/usuarios'
+```
+
+```bash Search by name
+curl --request GET \
+  --url 'https://yourdomain.com/api/usuarios?busqueda=maria'
+```
+
+</CodeGroup>
+
+### 200 — success (no search term)
+
+```json
+[
+  {
+    "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "nombre": "María García",
+    "avatar_url": "https://example.com/avatars/maria.png",
+    "sobre_mi": "Amante de la cocina tradicional."
+  },
+  {
+    "id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+    "nombre": "Carlos López",
+    "avatar_url": null,
+    "sobre_mi": null
+  }
+]
+```
+
+### 400 — database error
+
+```json
+{
+  "error": "<database error message>"
+}
+```
+
+### 500 — internal server error
+
+```json
+{
+  "error": "Error interno del servidor"
+}
+```

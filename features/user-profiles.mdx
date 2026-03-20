@@ -1,0 +1,93 @@
+---
+title: "User profiles"
+description: "View and edit user profiles on Sazón Comunitario."
+---
+
+Every registered user has a profile page that shows their display name, bio, avatar, and a link to all the recipes they have shared.
+
+## What a profile contains
+
+| Field | Description | Limit |
+|---|---|---|
+| `nombre` | Display name shown across the site | 30 characters max |
+| `sobre_mi` | A short personal bio | 300 characters max |
+| `avatar_url` | URL to the user's profile photo | Optional |
+| `is_admin` | Whether the user has administrator privileges | Set internally |
+| `bloqueado` | Whether the account is blocked by an administrator | Set by admins |
+
+## Viewing a profile
+
+Profile pages are available at `/perfilUsuario/[id]`, where `[id]` is the user's unique identifier.
+
+To access **your own profile**, navigate to `/perfilUsuario/me`. The server resolves `me` to your authenticated user ID automatically.
+
+The profile page shows:
+- The user's avatar
+- Their display name
+- Their **Sobre mí** bio
+- A **Lista de recetas** button that links to all their public recipes
+
+<Note>
+  If a profile belongs to a blocked user, a red notice banner is shown at the top of the page indicating the account is currently blocked.
+</Note>
+
+## Editing your profile
+
+When you view your own profile, an **Editar perfil** button appears. Click it to open the edit form.
+
+<Steps>
+  <Step title="Update your avatar">
+    Click the file input under **Foto de perfil** to select a new image from your device. Your current avatar is shown as a preview. Leave this field empty to keep your existing photo.
+  </Step>
+  <Step title="Update your display name">
+    Edit the **Nombre** field. This name appears on your recipes and anywhere the platform references you. It cannot be blank and must not exceed 30 characters.
+  </Step>
+  <Step title="Update your bio">
+    Edit the **Sobre mí** text area. Write a short description about yourself. This field is optional and is limited to 300 characters.
+  </Step>
+  <Step title="Save changes">
+    Click **Guardar cambios**. Your profile is updated immediately. Click **Cancelar** to discard any changes.
+  </Step>
+</Steps>
+
+### Validation rules
+
+<Warning>
+  The following rules apply when saving profile changes:
+  - **Nombre** cannot be blank or contain only spaces.
+  - **Nombre** must not exceed 30 characters.
+  - **Sobre mí** must not exceed 300 characters.
+</Warning>
+
+## Viewing a user's recipes
+
+On any profile page, click **Lista de recetas** to see all the recipes that user has shared. This navigates to `/listaRecetas?userId=[id]` and displays the user's public recipes in the same card grid used on the home page.
+
+If the user has not uploaded any recipes yet, a message indicates that their list is empty.
+
+## Admin and blocked status
+
+<Tabs>
+  <Tab title="Admin status">
+    Users with `is_admin = true` have elevated privileges across the site:
+    - They can **hide or unhide** any recipe that is not their own (see [Recipes — Admin visibility controls](/features/recipes#admin-visibility-controls)).
+    - They can **block or unblock** any user account that is not their own.
+
+    Admin status is assigned directly in the database and cannot be self-assigned.
+  </Tab>
+  <Tab title="Blocked status">
+    When an administrator blocks a user (`bloqueado = true`):
+    - A banner on the user's profile page indicates their account is blocked.
+    - Admins see a **Desbloquear usuario** button to reverse the action.
+
+    Blocking a user does not automatically hide their recipes — recipe visibility is managed separately via the `oculta` flag.
+  </Tab>
+</Tabs>
+
+### Admin controls on profile pages
+
+When an admin views another user's profile, a **Banear usuario** button appears (or **Desbloquear usuario** if the account is already blocked). Clicking the button shows a confirmation dialog before the status changes.
+
+<Note>
+  Admins cannot block their own account. The block/unblock button only appears when viewing another user's profile.
+</Note>

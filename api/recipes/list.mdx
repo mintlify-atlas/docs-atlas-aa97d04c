@@ -1,0 +1,206 @@
+---
+title: 'Recipes list'
+description: 'List all public recipes with pagination and search, or create a new recipe.'
+---
+
+## GET /api/recetas
+
+Returns a paginated list of public recipes. Only recipes where `oculta` is `false` are returned, sorted by creation date descending. Each recipe includes the author's profile data.
+
+<Note>No authentication is required to list recipes.</Note>
+
+### Query parameters
+
+<ParamField query="busqueda" type="string">
+  Filter recipes by title. Performs a case-insensitive partial match.
+</ParamField>
+
+<ParamField query="page" type="integer" default="1">
+  Page number to retrieve.
+</ParamField>
+
+<ParamField query="limit" type="integer" default="16">
+  Number of results per page.
+</ParamField>
+
+### Response fields
+
+<ResponseField name="data" type="array" required>
+  Array of recipe objects for the requested page.
+  <Expandable title="Recipe object properties">
+    <ResponseField name="id" type="string">
+      Unique UUID of the recipe.
+    </ResponseField>
+    <ResponseField name="titulo" type="string">
+      Recipe title.
+    </ResponseField>
+    <ResponseField name="descripcion" type="string">
+      Short description of the recipe.
+    </ResponseField>
+    <ResponseField name="tiempo" type="string">
+      Preparation and cooking time.
+    </ResponseField>
+    <ResponseField name="dificultad" type="string">
+      Difficulty level.
+    </ResponseField>
+    <ResponseField name="ingredientes" type="string">
+      JSON-encoded array of ingredient strings.
+    </ResponseField>
+    <ResponseField name="pasos" type="string">
+      JSON-encoded array of step strings.
+    </ResponseField>
+    <ResponseField name="imagen_url" type="string">
+      URL of the recipe image, or `null` if none.
+    </ResponseField>
+    <ResponseField name="oculta" type="boolean">
+      Whether the recipe is hidden. Always `false` in list results.
+    </ResponseField>
+    <ResponseField name="fecha_creacion" type="string">
+      ISO 8601 timestamp of when the recipe was created.
+    </ResponseField>
+    <ResponseField name="autor_id" type="string">
+      UUID of the user who created the recipe.
+    </ResponseField>
+    <ResponseField name="perfiles" type="object">
+      Nested author profile.
+      <Expandable title="perfiles properties">
+        <ResponseField name="nombre" type="string">
+          Display name of the author.
+        </ResponseField>
+        <ResponseField name="avatar_url" type="string">
+          URL of the author's avatar image.
+        </ResponseField>
+      </Expandable>
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="totalPages" type="integer" required>
+  Total number of pages for the current query.
+</ResponseField>
+
+<ResponseField name="currentPage" type="integer" required>
+  The page number returned in this response.
+</ResponseField>
+
+### Example request
+
+```bash
+curl -X GET "https://example.com/api/recetas?busqueda=pasta&page=1&limit=16"
+```
+
+### Example response
+
+```json
+{
+  "data": [
+    {
+      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "titulo": "Pasta al pesto",
+      "descripcion": "Una receta clásica italiana con albahaca fresca.",
+      "tiempo": "20 minutos",
+      "dificultad": "Fácil",
+      "ingredientes": "[\"pasta\", \"albahaca\", \"ajo\", \"aceite de oliva\"]",
+      "pasos": "[\"Cocer la pasta.\", \"Preparar el pesto.\", \"Mezclar y servir.\"]",
+      "imagen_url": "https://example.com/images/pasta.jpg",
+      "oculta": false,
+      "fecha_creacion": "2024-03-15T10:30:00.000Z",
+      "autor_id": "f1e2d3c4-b5a6-7890-abcd-ef0987654321",
+      "perfiles": {
+        "nombre": "María García",
+        "avatar_url": "https://example.com/avatars/maria.jpg"
+      }
+    }
+  ],
+  "totalPages": 4,
+  "currentPage": 1
+}
+```
+
+---
+
+## POST /api/recetas
+
+Creates a new recipe. The recipe is automatically associated with the authenticated user and set to visible (`oculta: false`).
+
+<Warning>Authentication is required. Requests without a valid session return `401 Unauthorized`.</Warning>
+
+### Request body
+
+<ParamField body="titulo" type="string" required>
+  Title of the recipe. Maximum 60 characters. Leading and trailing whitespace is trimmed.
+</ParamField>
+
+<ParamField body="descripcion" type="string" required>
+  Short description of the recipe. Maximum 300 characters. Leading and trailing whitespace is trimmed.
+</ParamField>
+
+<ParamField body="tiempo" type="string" required>
+  Preparation and cooking time (e.g., `"30 minutos"`). Leading and trailing whitespace is trimmed.
+</ParamField>
+
+<ParamField body="dificultad" type="string">
+  Difficulty level (e.g., `"Fácil"`, `"Medio"`, `"Difícil"`).
+</ParamField>
+
+<ParamField body="ingredientes" type="string[]" required>
+  Array of ingredient strings. Empty strings and whitespace-only entries are ignored. At least one valid entry is required.
+</ParamField>
+
+<ParamField body="pasos" type="string[]" required>
+  Array of step strings describing the preparation process. Empty strings and whitespace-only entries are ignored. At least one valid entry is required.
+</ParamField>
+
+<ParamField body="imagen_url" type="string">
+  URL of the recipe image. Stored as `null` if not provided.
+</ParamField>
+
+### Validation rules
+
+- `titulo`, `descripcion`, and `tiempo` are required and must not be blank after trimming.
+- `titulo` must not exceed 60 characters.
+- `descripcion` must not exceed 300 characters.
+- `ingredientes` and `pasos` must each contain at least one non-empty string.
+
+### Response
+
+Returns `201 Created` on success.
+
+```json
+{
+  "message": "Receta creada con éxito"
+}
+```
+
+### Error responses
+
+| Status | Condition |
+|--------|-----------|
+| `400`  | Missing required fields, validation failure, or database error |
+| `401`  | No authenticated session |
+| `500`  | Unexpected server error |
+
+### Example request
+
+```bash
+curl -X POST "https://example.com/api/recetas" \
+  -H "Content-Type: application/json" \
+  -H "Cookie: <session-cookie>" \
+  -d '{
+    "titulo": "Pasta al pesto",
+    "descripcion": "Una receta clásica italiana con albahaca fresca.",
+    "tiempo": "20 minutos",
+    "dificultad": "Fácil",
+    "ingredientes": ["pasta", "albahaca", "ajo", "aceite de oliva"],
+    "pasos": ["Cocer la pasta.", "Preparar el pesto.", "Mezclar y servir."],
+    "imagen_url": "https://example.com/images/pasta.jpg"
+  }'
+```
+
+### Example response
+
+```json
+{
+  "message": "Receta creada con éxito"
+}
+```

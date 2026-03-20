@@ -1,0 +1,111 @@
+---
+title: "Recipes"
+description: "Share, browse, and manage recipes on Sazón Comunitario."
+---
+
+Recipes are the core of Sazón Comunitario. Every signed-in user can publish their own recipes, browse what the community has shared, and manage their posts at any time.
+
+## What a recipe contains
+
+Each recipe has the following fields:
+
+| Field | Description | Limit |
+|---|---|---|
+| `titulo` | The name of the dish | 60 characters max |
+| `descripcion` | A short summary of the recipe | 300 characters max |
+| `tiempo` | Preparation time (free text, e.g. `"45 min"`) | — |
+| `dificultad` | Difficulty level: **Fácil**, **Media**, or **Difícil** | — |
+| `ingredientes` | Ordered list of ingredients | At least 1 required |
+| `pasos` | Ordered list of preparation steps | At least 1 required |
+| `imagen_url` | URL to the recipe photo | Optional |
+| `oculta` | Visibility flag — hidden recipes are not shown publicly | Set by admins |
+
+## Browsing recipes on the home page
+
+The home page (`/home`) shows all public recipes sorted by most recent first. Recipes are displayed as cards showing the dish photo, title, description preview, difficulty badge, and preparation time.
+
+Results are **paginated at 16 recipes per page**. Use the **Anterior** and **Siguiente** buttons at the bottom of the page to move between pages.
+
+<Note>
+  Only recipes where `oculta` is `false` appear in the public listing. Hidden recipes are not visible to regular users.
+</Note>
+
+## Uploading a recipe
+
+Navigate to `/subirReceta` to share a new recipe. You must be signed in to access this page.
+
+<Steps>
+  <Step title="Add a photo (optional)">
+    Click the file input under **Imagen de la receta** and select an image from your device. Supported formats are any common image type (JPEG, PNG, WebP, etc.). If you skip this step, a placeholder image is shown on the recipe card.
+  </Step>
+  <Step title="Fill in the basic details">
+    Enter the following fields:
+    - **Nombre del plato** — the name of your recipe (max 60 characters)
+    - **Tiempo de preparación** — how long it takes to prepare (e.g. `30 min`, `1 hora`)
+    - **Descripción** — a brief description of the dish (max 300 characters)
+    - **Dificultad** — select **Fácil**, **Media**, or **Difícil** from the dropdown
+  </Step>
+  <Step title="Add ingredients">
+    Each ingredient goes on its own line. Click **Añadir ingrediente** to add a new entry. Remove an entry with the **✕** button next to it. At least one ingredient is required.
+  </Step>
+  <Step title="Add preparation steps">
+    Each step is numbered automatically. Click **Añadir paso** to append a new step. Remove a step with the **✕** button next to it. At least one step is required.
+  </Step>
+  <Step title="Save the recipe">
+    Click **Guardar Receta**. If validation passes, you are redirected to the home page where your new recipe appears at the top of the list.
+  </Step>
+</Steps>
+
+### Validation rules
+
+<Warning>
+  The form will not submit if any of the following rules are violated:
+  - **Nombre del plato**, **Descripción**, and **Tiempo de preparación** cannot be blank or contain only spaces.
+  - **Nombre del plato** must not exceed 60 characters.
+  - **Descripción** must not exceed 300 characters.
+  - At least one ingredient and one preparation step must be provided (empty entries are ignored).
+</Warning>
+
+## Recipe detail view
+
+Click any recipe card to open the detail page at `/receta/[id]`. The detail page shows:
+
+- The recipe photo
+- Ingredient list
+- Difficulty and preparation time
+- Author avatar and name (clicking the author navigates to their profile)
+- Description
+- Numbered preparation steps
+
+If you are the recipe's author, **Editar receta** and **Eliminar receta** buttons appear below the photo.
+
+### Editing a recipe
+
+Click **Editar receta** on the detail page. The same form used during upload appears pre-filled with the current values. All fields and validation rules are identical to the upload flow. You can also replace the existing photo by selecting a new image file.
+
+Click **Guardar cambios** to save, or **Cancelar** to discard.
+
+### Deleting a recipe
+
+Click **Eliminar receta** on the detail page. A confirmation dialog appears before the recipe is permanently removed. After deletion you are redirected to `/home`.
+
+## Recipe visibility
+
+Every recipe is either **public** or **hidden** (`oculta`):
+
+<CardGroup cols={2}>
+  <Card title="Public" icon="eye">
+    The recipe appears in the home page feed, in search results, and on the author's recipe list. This is the default state when a recipe is first uploaded.
+  </Card>
+  <Card title="Hidden" icon="eye-off">
+    The recipe is removed from all public listings. Users cannot discover it through browsing or search. The detail page remains accessible if you have the direct URL.
+  </Card>
+</CardGroup>
+
+### Admin visibility controls
+
+Administrators can toggle the visibility of any recipe that is not their own. On the detail page, admins see an **Ocultar receta** button (or **Mostrar receta** if the recipe is already hidden). Toggling visibility takes effect immediately.
+
+<Note>
+  Only admins can change the `oculta` flag. The recipe author cannot hide or unhide their own recipe — they can only edit or delete it.
+</Note>
